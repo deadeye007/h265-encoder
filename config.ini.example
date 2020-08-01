@@ -1,0 +1,4 @@
+[settings]
+extensions=".mkv",".mp4",".avi"
+pattern= *h265.mkv
+

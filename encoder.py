@@ -5,55 +5,45 @@
 # TODO: Put the os.walk in a separate function to prevent mishaps.
 
 # Import
-import sys, textwrap, os, fnmatch
+import argparse, configparser, fnmatch, os, sys, textwrap
 from pathlib import Path
 
-# Set window size.
-os.system('mode con: cols=125 lines=30')
+def logo():
+    print('''
+##############################################################
+##############################################################
+#
+# PYTHON 3
+# FFMPEG h265 Encoder v1.0
+#
+# Created by: Andrew Sturm
+# Created on: 2020-04-21
+#
+##############################################################
+##############################################################
 
-def clear():
-    # Clear command for Windows
-    if os.name == 'nt':
-        _ = os.system('cls')
-
-        # Clear command for Mac/*nix
-    else:
-        _ = os.system('clear')
-
-def title():
-    clear()
-    titleFull = '*'
-    title = '   FFMPEG h265 Encoder v1.0   '
-    subtitle = '   h265 Encoder for Data Hoarding   '
-    author = '   BY: ANDREW STURM   '
-    date = '   CREATED ON: 2020-21-04   '
-    space = 0
-
-    for x in range(0,3):
-        print(titleFull.center(125,'*'))
-    print(title.center(125,'*'))
-    print(titleFull.center(125, '*'))
-    print(subtitle.center(125, '*'))
-    print(titleFull.center(125, '*'))
-    print(author.center(125,'*'))
-    print(titleFull.center(125, '*'))
-    print(date.center(125, '*'))
-    for x in range(0,3):
-        print(titleFull.center(125, '*'))
-    while space != 16:
-        print('')
-        space = space + 1
+''')
 
 def encode(workingdir):
-       pattern = '*h265.mkv'
+# Declare variables
        matches = []
-   
+
+# Load config.ini into the script
+       try:
+           config = configparser.ConfigParser()
+           config.read('config.ini')
+       except FileNotFoundError:
+           print("FileNotFoundError: \'config.ini\' was not found and is required to run.\nRename/copy \'config.ini.example\' to \'config.ini\'.")   
+           exit()
+       pattern = config[settings][pattern]
+       extensions = config[settings][extensions]
+
        for dirpath, subdirs, files in os.walk(workingdir, followlinks=False, topdown=False):
            filelist = []
            for file in files:
                if file in fnmatch.filter(files, pattern):
                      clear() # Just something to do. Nothing important.  
-               elif file.endswith((".mkv",".mp4",".avi")):
+               elif file.endswith(extensions):
                        filelist.append(os.path.join(dirpath, file))
                        matches.append(os.path.join(file))
                        
@@ -64,7 +54,8 @@ def encode(workingdir):
 
                cmd = 'ffmpeg -i "'+infile+'" -c:v libx265 -crf 24 -f mp4 -c:a aac -b:a 128k "'+outfile+'.h265.mkv"'
                print(cmd)
-               os.system(cmd)
+# TURNED OFF FOR DEBUGGING
+#               os.system(cmd)
                i = i + 1
                     
            except KeyboardInterrupt:
@@ -76,10 +67,37 @@ def encode(workingdir):
 
        print(matches)
             
-def main():
-   clear()
-   title()
-   workingdir = input("Please enter your working directory:\n")
-   encode(workingdir)
+def main(argv):
+    # Check for the correct arguments
+    parser = argparse.ArgumentParser(prog='encoder.py', description='Compress your videos with h265.', add_help=False)
+    parser.add_argument('--input', help='The directory where your video files to be encoded reside.', dest='workingdir', nargs='?')
+    parser.add_argument('--help', help='Get usage help.', nargs=None)
+#    parser.add_argument('--version', help='Get program version.', nargs=None)
+#    subparsers = parser.add_subparsers(dest='cmd_name')
+#    subparsers.add_parser('input')
+#    subparsers.add_parser('help')
+    
+    args = parser.parse_args()
 
-main()
+    try:
+        if str(args) in "--help":
+            parser.print_help(help)
+
+        elif str(args) in "--input":
+            print(workingdir)
+#            encode(workingdir)
+
+    except FileNotFoundError:
+        print("The path or directory does not exist. Please check the path and try again.")
+   
+#    except:
+#        print("Invalid argument.\n\nUsage: encoder.py -in \"/path/to/videos/\"")
+#        exit()
+
+
+# Start the main loop
+if __name__ == "__main__":
+    if sys.argv[1:] != []:
+        main(sys.argv[1:])
+    else:
+        print("Usage: encoder.py --input \"/path/to/videos/\"")

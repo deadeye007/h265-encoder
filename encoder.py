@@ -5,7 +5,7 @@
 # TODO: Put the os.walk in a separate function to prevent mishaps.
 
 # Import
-import argparse, configparser, fnmatch, os, sys, textwrap
+import argparse, configparser, fnmatch, os, sys
 from pathlib import Path
 
 def logo():
@@ -26,75 +26,64 @@ def logo():
 
 def encode(workingdir):
 # Declare variables
-       matches = []
-
+    matches = []
+    filelist = []        
 # Load config.ini into the script
-       try:
-           config = configparser.ConfigParser()
-           config.read('config.ini')
-       except FileNotFoundError:
-           print("FileNotFoundError: \'config.ini\' was not found and is required to run.\nRename/copy \'config.ini.example\' to \'config.ini\'.")   
-           exit()
-       pattern = config[settings][pattern]
-       extensions = config[settings][extensions]
+    try:
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+    except FileNotFoundError:
+        print("FileNotFoundError: \'config.ini\' was not found and is required to run.\nRename/copy \'config.ini.example\' to \'config.ini\'.")   
+        exit()
+    pattern = config['settings']['pattern']
+    extensions = config['settings']['extensions']
 
-       for dirpath, subdirs, files in os.walk(workingdir, followlinks=False, topdown=False):
-           filelist = []
-           for file in files:
-               if file in fnmatch.filter(files, pattern):
-                     clear() # Just something to do. Nothing important.  
-               elif file.endswith(extensions):
-                       filelist.append(os.path.join(dirpath, file))
-                       matches.append(os.path.join(file))
-                       
-       for i in range(len(filelist)):
-           try:
-               infile = filelist[i]
-               outfile = os.path.splitext(filelist[i])[0]
+# Attempt to run the main process
+    for dirpath, subdirs, files in os.walk(workingdir, followlinks=False, topdown=False):
+        for file in files:
+            if file in fnmatch.filter(files, (pattern)):
+                print("Found file. Adding to list.")
+            elif file.endswith(extensions):
+                filelist.append(os.path.join(dirpath, file))
+                matches.append(os.path.join(file))
 
-               cmd = 'ffmpeg -i "'+infile+'" -c:v libx265 -crf 24 -f mp4 -c:a aac -b:a 128k "'+outfile+'.h265.mkv"'
-               print(cmd)
+    for i in range(len(filelist)):
+        try:
+            infile = filelist[i]
+            outfile = os.path.splitext(filelist[i])[0]
+    
+            cmd = 'ffmpeg -i "'+infile+'" -c:v libx265 -crf 24 -f mp4 -c:a aac -b:a 128k "'+outfile+'.'+pattern
+            print(cmd)
 # TURNED OFF FOR DEBUGGING
 #               os.system(cmd)
-               i = i + 1
+            i = i + 1 # Probably not even necessary in Python. Old habits.
                     
-           except KeyboardInterrupt:
-               print('Exiting due to keyboard interrupt.')
-               sys.exit()
-           except:
-               print('Unrecoverable error occured. Check ffmpeg logs.\n\nExiting...')
-               sys.exit()
+        except KeyboardInterrupt:
+            print('Exiting due to keyboard interrupt.')
+            sys.exit()
+        except:
+            print('Unrecoverable error occured. Check ffmpeg logs.\n\nExiting...')
+            sys.exit()
 
-       print(matches)
+    #print(matches)
             
 def main(argv):
+    # Declare variables
+    workingdir = ""
+
     # Check for the correct arguments
-    parser = argparse.ArgumentParser(prog='encoder.py', description='Compress your videos with h265.', add_help=False)
-    parser.add_argument('--input', help='The directory where your video files to be encoded reside.', dest='workingdir', nargs='?')
-    parser.add_argument('--help', help='Get usage help.', nargs=None)
-#    parser.add_argument('--version', help='Get program version.', nargs=None)
-#    subparsers = parser.add_subparsers(dest='cmd_name')
-#    subparsers.add_parser('input')
-#    subparsers.add_parser('help')
-    
+    parser = argparse.ArgumentParser(prog='encoder.py', description='Compress your videos with h265.')
+    parser.add_argument('-i', '--input', action="store", help='The directory where your video files to be encoded reside.', dest='workingdir', type=str)
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
     args = parser.parse_args()
 
     try:
-        if str(args) in "--help":
-            parser.print_help(help)
-
-        elif str(args) in "--input":
-            print(workingdir)
-#            encode(workingdir)
+        if args.workingdir != '':
+            encode(workingdir)
 
     except FileNotFoundError:
         print("The path or directory does not exist. Please check the path and try again.")
    
-#    except:
-#        print("Invalid argument.\n\nUsage: encoder.py -in \"/path/to/videos/\"")
-#        exit()
-
-
 # Start the main loop
 if __name__ == "__main__":
     if sys.argv[1:] != []:

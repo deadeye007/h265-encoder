@@ -1,10 +1,5 @@
-# FFMPEG Encoder Script
-# by Andrew Sturm
-# Created 2020-04-25
+#!/usr/bin/python3
 
-# TODO: Put the os.walk in a separate function to prevent mishaps.
-
-# Import
 import argparse, configparser, fnmatch, os, sys
 from pathlib import Path
 
@@ -27,7 +22,8 @@ def logo():
 def encode(workingdir):
 # Declare variables
     matches = []
-    filelist = []        
+    filelist = []
+      
 # Load config.ini into the script
     try:
         config = configparser.ConfigParser()
@@ -35,37 +31,37 @@ def encode(workingdir):
     except FileNotFoundError:
         print("FileNotFoundError: \'config.ini\' was not found and is required to run.\nRename/copy \'config.ini.example\' to \'config.ini\'.")   
         exit()
+
     pattern = config['settings']['pattern']
+    fnpattern = ('*'+pattern)
+    filepattern = ('.'+pattern)
     extensions = config['settings']['extensions']
 
 # Attempt to run the main process
     for dirpath, subdirs, files in os.walk(workingdir, followlinks=False, topdown=False):
         for file in files:
-            if file in fnmatch.filter(files, (pattern)):
-                print("Found file. Adding to list.")
-            elif file.endswith(extensions):
+            if file in fnmatch.filter(files, fnpattern):
+                print("'"+file+"' doesn't match pattern. Excluding...")
+            elif file.endswith(tuple(extensions)):
                 filelist.append(os.path.join(dirpath, file))
-                matches.append(os.path.join(file))
-
+    
     for i in range(len(filelist)):
         try:
             infile = filelist[i]
             outfile = os.path.splitext(filelist[i])[0]
     
-            cmd = 'ffmpeg -i "'+infile+'" -c:v libx265 -crf 24 -f mp4 -c:a aac -b:a 128k "'+outfile+'.'+pattern
-            print(cmd)
-# TURNED OFF FOR DEBUGGING
-#               os.system(cmd)
+            cmd = 'ffmpeg -i "'+infile+'" -c:v libx265 -crf 24 -f mp4 -c:a aac -b:a 128k "'+outfile+filepattern+'"'
+            os.system(cmd)
             i = i + 1 # Probably not even necessary in Python. Old habits.
                     
         except KeyboardInterrupt:
             print('Exiting due to keyboard interrupt.')
-            sys.exit()
+            exit()
         except:
-            print('Unrecoverable error occured. Check ffmpeg logs.\n\nExiting...')
-            sys.exit()
+            print('Unrecoverable error occurred. Check ffmpeg logs.\n\nExiting...')
+            exit()
 
-    #print(matches)
+#    print(matches)
             
 def main(argv):
     # Declare variables
@@ -79,7 +75,7 @@ def main(argv):
 
     try:
         if args.workingdir != '':
-            encode(workingdir)
+            encode(args.workingdir)
 
     except FileNotFoundError:
         print("The path or directory does not exist. Please check the path and try again.")

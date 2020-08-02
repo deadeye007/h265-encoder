@@ -1,4 +1,14 @@
 [settings]
+# List the extensions you want to include in matches.
 extensions=".mkv",".mp4",".avi"
-pattern= *h265.mkv
 
+# Pattern to ignore
+pattern=h265.mkv
+
+[ffmpeg]
+# Settings related to how ffmpeg will run
+constrate=24
+format=mp4
+vcodec=libx265
+acodec=aac
+abitrate=128k

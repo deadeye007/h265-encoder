@@ -31,21 +31,19 @@ def encode(workingdir):
     except FileNotFoundError:
         print("FileNotFoundError: \'config.ini\' was not found and is required to run.\nRename/copy \'config.ini.example\' to \'config.ini\'.")   
         exit()
+
     pattern = config['settings']['pattern']
     fnpattern = ('*'+pattern)
     filepattern = ('.'+pattern)
-    extensions = '('+config['settings']['extensions']+')'
-    print(extensions)
-   # extensions = (".mkv",".mp4",".avi")
+    extensions = config['settings']['extensions']
 
 # Attempt to run the main process
     for dirpath, subdirs, files in os.walk(workingdir, followlinks=False, topdown=False):
         for file in files:
             if file in fnmatch.filter(files, fnpattern):
                 print("'"+file+"' doesn't match pattern. Excluding...")
-            elif file.endswith(str(extensions)):
+            elif file.endswith(tuple(extensions)):
                 filelist.append(os.path.join(dirpath, file))
-#                matches.append(os.path.join(file))
     
     for i in range(len(filelist)):
         try:
@@ -53,9 +51,7 @@ def encode(workingdir):
             outfile = os.path.splitext(filelist[i])[0]
     
             cmd = 'ffmpeg -i "'+infile+'" -c:v libx265 -crf 24 -f mp4 -c:a aac -b:a 128k "'+outfile+filepattern+'"'
-            print(cmd)
-# TURNED OFF FOR DEBUGGING
-#               os.system(cmd)
+            os.system(cmd)
             i = i + 1 # Probably not even necessary in Python. Old habits.
                     
         except KeyboardInterrupt:

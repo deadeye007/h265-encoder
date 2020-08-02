@@ -41,9 +41,9 @@ def encode(workingdir):
 # Attempt to run the main process
     for dirpath, subdirs, files in os.walk(workingdir, followlinks=False, topdown=False):
         for file in files:
-            if file in fnmatch.filter(files, (pattern)):
+            if file in fnmatch.filter(files, pattern):
                 print("Found file. Adding to list.")
-            elif file.endswith(extensions):
+            elif file.endswith((extensions)):
                 filelist.append(os.path.join(dirpath, file))
                 matches.append(os.path.join(file))
 
@@ -65,7 +65,7 @@ def encode(workingdir):
             print('Unrecoverable error occured. Check ffmpeg logs.\n\nExiting...')
             sys.exit()
 
-    #print(matches)
+    print(matches)
             
 def main(argv):
     # Declare variables

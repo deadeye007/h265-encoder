@@ -1,14 +1,15 @@
 [settings]
-# List the extensions you want to include in matches.
-extensions=".mkv",".mp4",".avi"
+# Comma-separated extensions line
+extensions=".mkv",".mp4",".avi",".ogv",".3pg",".webm",".mov"
 
-# Pattern to ignore
+# Pattern to ignore (to avoid recursion)
 pattern=h265.mkv
 
 [ffmpeg]
 # Settings related to how ffmpeg will run
-constrate=24
+const_rate=24
 format=mp4
-vcodec=libx265
-acodec=aac
-abitrate=128k
+video_codec=libx265
+audio_codec=aac
+audio_bitrate=192k
+threads=2

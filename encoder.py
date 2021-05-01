@@ -3,10 +3,11 @@
 
 import argparse
 import configparser
-import fnmatch
-import os
-from subprocess import run
+from fnmatch import filter
+from multiprocessing import cpu_count
 import sys
+from os import path, walk
+from subprocess import run
 
 
 def encode(working_dir):
@@ -30,24 +31,33 @@ def encode(working_dir):
         audio_bitrate = config['ffmpeg']['audio_bitrate']
         threads = config['ffmpeg']['threads']
 
+        if str(threads) == 0:
+            threads = cpu_count()
+        else:
+            if int(threads) > cpu_count():
+                print(f"Set threads in 'config.ini' no higher than \
+{cpu_count()}")
+                raise SyntaxError
+
     except FileNotFoundError:
         print("FileNotFoundError: \'config.ini\' was not found and is required \
         to run.\nRename/copy \'config.ini.example\' to \'config.ini\'.")
         exit()
 
     # Attempt to run the main process
-    for dir_path, sub_dirs, files in os.walk(working_dir, followlinks=False,
-                                             topdown=False):
+    for dir_path, sub_dirs, files in walk(working_dir, followlinks=False,
+                                          topdown=False):
         for file in files:
-            if file in fnmatch.filter(files, fn_pattern):
+            if file in filter(files, fn_pattern):
                 print(f"'{file}' doesn't match pattern. Excluding...")
             elif file.endswith(tuple(extensions)):
-                file_list.append(os.path.join(dir_path, file))
+                file_list.append(path.join(dir_path, file))
                 print(f"'{file}' matches pattern.")
+
     for i in range(len(file_list)):
         try:
             in_file = file_list[i]
-            out_file = os.path.splitext(file_list[i])[0]
+            out_file = path.splitext(file_list[i])[0]
 
             cmd = f"ffmpeg \
             -i {in_file} \
@@ -59,7 +69,7 @@ def encode(working_dir):
             -b:a {audio_bitrate} \
             {out_file}{file_pattern}"
             run(cmd, shell=True)
-            i = i + 1
+#            i = i + 1    # Maybe not needed
 
         except KeyboardInterrupt:
             print('Exiting due to keyboard interrupt.')
@@ -96,7 +106,7 @@ def main(argv):
 
 # Start the main loop
 if __name__ == "__main__":
-    if sys.argv[1:] != []:
+    if sys.argv[1:]:
         main(sys.argv[1:])
     else:
         print("Usage: encoder.py --input \"/path/to/videos/\"")

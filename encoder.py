@@ -5,7 +5,7 @@ import argparse
 import configparser
 import fnmatch
 import os
-import subprocess
+from subprocess import run
 import sys
 
 
@@ -58,7 +58,7 @@ def encode(working_dir):
             -c:a {audio_codec} \
             -b:a {audio_bitrate} \
             {out_file}{file_pattern}"
-            subprocess.run(cmd, shell=True)
+            run(cmd, shell=True)
             i = i + 1
 
         except KeyboardInterrupt:
@@ -82,7 +82,7 @@ def main(argv):
                         help='The directory where your video files to be \
                         encoded reside.', dest='working_dir', type=str)
     parser.add_argument('-v', '--version', action='version',
-                        version='%(prog)s 1.0')
+                        version='%(prog)s 1.0.1')
     args = parser.parse_args()
 
     try:

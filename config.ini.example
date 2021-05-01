@@ -7,9 +7,17 @@ pattern=h265.mkv
 
 [ffmpeg]
 # Settings related to how ffmpeg will run
+# Consult FFMPEG Documentation for more information: https://ffmpeg.org/ffmpeg.html
 const_rate=24
 format=mp4
 video_codec=libx265
-audio_codec=aac
-audio_bitrate=192k
-threads=2
+
+# Audio Codecs, e.g. ac3, aac
+audio_codec=ac3
+
+# Audio Bitrate, e.g. 128k, 192k, 256k
+audio_bitrate=256k
+
+# Limit CPU threads, for multi-tasking
+# threads=0 translates to 100% CPU Utilization
+threads=4
